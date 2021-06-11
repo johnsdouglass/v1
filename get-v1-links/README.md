@@ -46,11 +46,12 @@ This script requires Python 3 and the following packages:
 ## Usage
 
 ```
-get_v1_links.py [--endpoint ENDPOINT] [--token TOKEN] [--include-name] [number ...]
+get_v1_links.py [--endpoint ENDPOINT] [--token TOKEN] [--include-name] [--from-clipboard] [number ...]
 ```
 
-You may specify asset numbers on the command line, or if none are included,
-the script attempts to pull the numbers from the clipboard.
+You may specify asset numbers on the command line,
+in the clipboard with the `--include-clipboard` parameter, or if none are included,
+the script will prompt you for them.
 
 Other arguments are:
 * `--endpoint`: V1 endpoint, i.e., `https://[host]/[path]`.
@@ -58,3 +59,4 @@ Can also be specified with the `VERSION_ONE_ENDPOINT` environment variable.
 * `--token`: V1 access token. Can also be specified with the `VERSION_ONE_TOKEN` 
 environment variable.
 * `--include-name`: Include the name of each asset.
+* `--from-clipboard`: Read asset numbers from clipboard.

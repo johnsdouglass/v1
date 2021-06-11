@@ -41,7 +41,7 @@ prefix_asset_type = {
 # Returns asset type of the specified asset number (e.g., E-12345 refers to an Epic)
 def get_asset_type(number: str):
     for prefix, asset_type in prefix_asset_type.items():
-        if number.startswith(prefix):
+        if number.upper().startswith(prefix):
             return asset_type
     sys.exit("Can't determine asset type of number " + number + ". Supported prefixes are: " +
              ", ".join(prefix_asset_type.keys()) + ".")
@@ -51,10 +51,10 @@ def get_asset_type(number: str):
 class AssetInfo(object):
     def __init__(self, number: str, oid: str = None, name: str = None):
         self.asset_type = get_asset_type(number)
-        self.number = number
+        self.number = number.upper()
         self.oid = oid
         # Sometimes the name has control characters in it
-        self.name = name.replace('\t', ' ').replace('\n', '')
+        self.name = name.replace('\t', ' ').replace('\n', '') if name else ''
 
     # Returns a formatted HTML hyperlink (<a> element) for this asset.
     # If there is no object id, we assume it's not a valid asset,
@@ -101,7 +101,7 @@ def get_clipboard_assets():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Exports VersionOne links to clipboard.',
-        epilog='If no asset numbers are specified, this script will attempt to pull them from the clipboard.')
+        epilog='If no asset numbers are specified, you will be prompted for them.')
     parser.add_argument('asset_numbers', metavar='number', type=str, nargs='*',
                         help='One or more asset numbers. For example: "E-12345 B-22222". The following ' +
                              'asset types are supported: ' + ', '.join(prefix_asset_type.values()))
@@ -111,6 +111,8 @@ if __name__ == '__main__':
                         help='V1 access token or specify VERSION_ONE_TOKEN environment variable')
     parser.add_argument('--include-name', action='store_true',
                         help='Specify to include asset names')
+    parser.add_argument('--from-clipboard', action='store_true',
+                        help='Specify to read asset numbers from clipboard')
     args = parser.parse_args()
     headers = {}
 
@@ -121,9 +123,17 @@ if __name__ == '__main__':
         headers['Content-Type'] = 'application/json'
         headers['Authorization'] = 'Bearer ' + args.token
 
-    asset_numbers = get_clipboard_assets() if len(args.asset_numbers) == 0 else args.asset_numbers
+    if args.from_clipboard:
+        asset_numbers = get_clipboard_assets()
+    elif len(args.asset_numbers) > 0:
+        asset_numbers = args.asset_numbers
+    else:
+        asset_numbers = input('Enter one or more asset numbers separated by whitespace: ').split()
+
     if len(asset_numbers) == 0:
-        sys.exit('No asset numbers specified. Specify on command line or copy to clipboard.')
+        print('No asset numbers specified.')
+        parser.print_help()
+        sys.exit(1)
 
     assets = []
     for asset_number in asset_numbers:

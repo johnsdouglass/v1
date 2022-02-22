@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Exports V1 hyperlinks to clipboard.
+
 import sys
 import os
 import argparse

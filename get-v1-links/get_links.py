@@ -31,13 +31,16 @@ if __name__ == '__main__':
         description='Exports links to clipboard.',
         epilog='If no items are specified, you will be prompted for them.')
     parser.add_argument('items', type=str, nargs='*',
-                        help='One or more items to use to build the hyperlink')
+                        help='One or more items to use to build the hyperlink; can be tab separated')
+    parser.add_argument('--id-column', type=int, default=0,
+                        help='0-based number of column to be treated as ID (link text) for hyperlink')
     parser.add_argument('--format-string', required=True,
-                        help='Format string with {} at place to substitute item')
+                        help='Format string with {}, {0}, etc. at place to substitute item')
     parser.add_argument('--from-clipboard', action='store_true',
                         help='Specify to read IDs from clipboard')
-    args = parser.parse_args()
-    headers = {}
+    parser.add_argument('--ignore-header', action='store_true',
+                        help='Specify if first item is header; it will be ignored')
+    args, _ = parser.parse_known_args()
 
     if args.from_clipboard:
         items = get_clipboard_items()
@@ -56,17 +59,23 @@ if __name__ == '__main__':
 
     html = '<table>'
 
+    if args.ignore_header and len(items) > 0:
+        items.pop(0)
+
     for item in items:
         html += '<tr>'
         html += '<td>'
         if len(item) > 0:
-            url = args.format_string.format(item)
-            html += '<a href="{}">{}</a>'.format(url, item)
+            item_array = item.split('\t')
+            url = args.format_string.format(*item_array)
+            html += '<a href="{0}">{1}</a>'.format(url, item_array[args.id_column])
         html += '</td>'
         html += '</tr>\n'
 
     html += '</table>'
 
     print(html)
+
+    # exit(0)
 
     clipboard.copy_html(html)
